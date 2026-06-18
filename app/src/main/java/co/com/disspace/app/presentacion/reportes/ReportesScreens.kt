@@ -22,8 +22,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 internal fun MainActivity.showReportes() {
-        val page = page("Reportes", "Consultas analiticas del backend.")
-        page.addView(secondaryButton("Inicio") { showHome() })
+        val page = appPage("Reportes", "Consultas analiticas del backend.")
         val holder = section("Selecciona un reporte.")
         page.addView(topActions {
             addView(primaryButton("Por articulo") { loadReporte("/reportes/articulo", holder) })

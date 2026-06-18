@@ -3,11 +3,16 @@ package co.com.disspace.app.data.datasource
 import android.content.Context
 import org.json.JSONObject
 
+const val ProductionBaseUrl = "https://www.disspace.com.co/api/app/v1"
+
 class SessionStore(context: Context) {
     private val prefs = context.getSharedPreferences("disspace-session", Context.MODE_PRIVATE)
 
     var baseUrl: String
-        get() = prefs.getString("baseUrl", "http://10.0.2.2:5000/api/app/v1") ?: "http://10.0.2.2:5000/api/app/v1"
+        get() {
+            val saved = prefs.getString("baseUrl", ProductionBaseUrl).orEmpty()
+            return if (saved.isBlank() || saved.isLocalDevelopmentUrl()) ProductionBaseUrl else saved
+        }
         set(value) = prefs.edit().putString("baseUrl", value.trimEnd('/')).apply()
 
     var token: String
@@ -23,3 +28,6 @@ class SessionStore(context: Context) {
         prefs.edit().clear().putString("baseUrl", currentBase).apply()
     }
 }
+
+private fun String.isLocalDevelopmentUrl(): Boolean =
+    contains("10.0.2.2") || contains("localhost") || contains("127.0.0.1")

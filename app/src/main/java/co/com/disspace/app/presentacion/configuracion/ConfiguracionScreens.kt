@@ -22,9 +22,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 internal fun MainActivity.showConfiguracion() {
-        val page = page("Configuracion", "Factores de utilidad y preguntas del cuestionario.")
+        val page = appPage("Configuracion", "Factores de utilidad y preguntas del cuestionario.")
         page.addView(topActions {
-            addView(secondaryButton("Inicio") { showHome() })
             addView(primaryButton("Nueva pregunta") { showPreguntaForm(null, null) })
         })
         val holder = section("Cargando...")
@@ -63,7 +62,7 @@ internal fun MainActivity.showConfiguracion() {
     }
 
 internal fun MainActivity.showFactoresForm(values: Map<Int, String>) {
-        val page = page("Factores de utilidad", "Valores positivos usados para calcular precios.")
+        val page = appPage("Factores de utilidad", "Valores positivos usados para calcular precios.")
         val inputs = (1..6).associateWith { factor ->
             input("factor$factor", values[factor].orEmpty()).also {
                 it.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
@@ -81,7 +80,7 @@ internal fun MainActivity.showFactoresForm(values: Map<Int, String>) {
     }
 
 internal fun MainActivity.showPreguntaForm(id: String?, pregunta: JSONObject?) {
-        val page = page(if (id == null) "Nueva pregunta" else "Editar pregunta", "Cuestionario de pedidos")
+        val page = appPage(if (id == null) "Nueva pregunta" else "Editar pregunta", "Cuestionario de pedidos")
         val texto = input("Texto", pregunta?.optString("TEXTO").orEmpty())
         val tipo = input("Tipo: opcion o abierta", pregunta?.optString("TIPO", "opcion") ?: "opcion")
         val opciones = input("Opciones separadas por coma", pregunta?.optJSONArray("opciones")?.let { array ->

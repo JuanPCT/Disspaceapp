@@ -22,8 +22,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 internal fun MainActivity.showCatalogos() {
-        val page = page("Catalogos", "Datos base para formularios y seleccion de IDs.")
-        page.addView(secondaryButton("Inicio") { showHome() })
+        val page = appPage("Catalogos", "Datos base para formularios y seleccion de IDs.")
         val holder = section("Cargando...")
         page.addView(holder)
         apiCall({ api.get("/catalogos") }) { json ->
@@ -33,8 +32,7 @@ internal fun MainActivity.showCatalogos() {
     }
 
 internal fun MainActivity.showChangeSucursal() {
-        val page = page("Cambiar sucursal", "Selecciona una sucursal disponible.")
-        page.addView(secondaryButton("Inicio") { showHome() })
+        val page = appPage("Cambiar sucursal", "Selecciona una sucursal disponible.")
         val holder = section("Cargando...")
         page.addView(holder)
         apiCall({ api.get("/catalogos") }) { json ->

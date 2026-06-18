@@ -22,25 +22,16 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 internal fun MainActivity.showGenericList(module: CrudModule, filters: Map<String, String> = emptyMap()) {
-        val page = page(module.title, module.description)
+        val page = appPage(module.title, module.description)
         page.addView(topActions {
-            addView(secondaryButton("Inicio") { showHome() })
             addView(primaryButton("Nuevo") { showGenericForm(module, null, null) })
-            addView(secondaryButton("Recargar") { showGenericList(module, filters) })
-        })
-
-        val filterInputs = mutableMapOf<String, EditText>()
-        if (module.filters.isNotEmpty()) {
-            page.addView(sectionTitle("Filtros"))
-            module.filters.forEach { field ->
-                val edit = input(field.label, filters[field.key] ?: "")
-                filterInputs[field.key] = edit
-                page.addView(edit)
+            if (module.filters.isNotEmpty()) {
+                addView(filterButton(filters.size) {
+                    val fields = module.filters.map { it.key to it.label }
+                    showFiltersDialog("Filtros de ${module.title.lowercase()}", fields, filters) { showGenericList(module, it) }
+                })
             }
-            page.addView(primaryButton("Aplicar filtros") {
-                showGenericList(module, filterInputs.mapValues { it.value.text.toString().trim() }.filterValues { it.isNotBlank() })
-            })
-        }
+        })
 
         val listHolder = section("Cargando...")
         page.addView(listHolder)
@@ -83,7 +74,7 @@ internal fun MainActivity.loadGenericDetail(module: CrudModule, id: String, fall
     }
 
 internal fun MainActivity.showGenericForm(module: CrudModule, id: String?, item: JSONObject?) {
-        val page = page(if (id == null) "Nuevo ${module.singular}" else "Editar ${module.singular}", module.title)
+        val page = appPage(if (id == null) "Nuevo ${module.singular}" else "Editar ${module.singular}", module.title)
         val inputs = mutableMapOf<ApiField, View>()
         module.fields.forEach { field ->
             val value = item?.firstString(field.existingKeys) ?: ""
@@ -144,7 +135,7 @@ internal fun MainActivity.showGenericForm(module: CrudModule, id: String?, item:
 
 internal fun MainActivity.showListaPrecios(articuloId: String) {
         val module = listaPreciosModule
-        val page = page("Listas de precios", "Articulo $articuloId")
+        val page = appPage("Listas de precios", "Articulo $articuloId")
         page.addView(topActions {
             addView(secondaryButton("Atras") { showGenericList(articulosModule) })
             addView(primaryButton("Nueva lista") {

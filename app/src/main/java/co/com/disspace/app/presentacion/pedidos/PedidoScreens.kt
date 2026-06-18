@@ -22,21 +22,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 internal fun MainActivity.showPedidos(filters: Map<String, String> = emptyMap()) {
-        val page = page("Pedidos", "Fabricacion, instalacion y seguimiento.")
-        page.addView(topActions {
-            addView(secondaryButton("Inicio") { showHome() })
-            addView(secondaryButton("Recargar") { showPedidos(filters) })
-        })
+        val page = appPage("Pedidos", "Fabricacion, instalacion y seguimiento.")
         val filterFields = listOf("numero" to "Numero", "cliente" to "Cliente", "vendedor" to "Vendedor", "estadoPedido" to "Estado")
-        val inputs = mutableMapOf<String, EditText>()
-        page.addView(sectionTitle("Filtros"))
-        filterFields.forEach { (key, label) ->
-            val edit = input(label, filters[key] ?: "")
-            inputs[key] = edit
-            page.addView(edit)
-        }
-        page.addView(primaryButton("Aplicar filtros") {
-            showPedidos(inputs.mapValues { it.value.text.toString().trim() }.filterValues { it.isNotBlank() })
+        page.addView(topActions {
+            addView(filterButton(filters.size) {
+                showFiltersDialog("Filtros de pedidos", filterFields, filters) { showPedidos(it) }
+            })
         })
         val holder = section("Cargando...")
         page.addView(holder)
@@ -64,7 +55,7 @@ internal fun MainActivity.showPedidos(filters: Map<String, String> = emptyMap())
     }
 
 internal fun MainActivity.showPedidoDetail(id: String) {
-        val page = page("Pedido $id", "Estados, proveedores, comentarios y cuestionario.")
+        val page = appPage("Pedido $id", "Estados, proveedores, comentarios y cuestionario.")
         page.addView(topActions {
             addView(secondaryButton("Atras") { showPedidos() })
             addView(primaryButton("Comentario") { showComentarioForm(id) })
@@ -129,7 +120,7 @@ internal fun MainActivity.updateProveedorEstado(pedidoId: String, proveedorPedid
     }
 
 internal fun MainActivity.showComentarioForm(pedidoId: String, comentarioId: String? = null, current: String = "") {
-        val page = page(if (comentarioId == null) "Nuevo comentario" else "Editar comentario", "Pedido $pedidoId")
+        val page = appPage(if (comentarioId == null) "Nuevo comentario" else "Editar comentario", "Pedido $pedidoId")
         val comentario = input("Comentario", current)
         comentario.minLines = 4
         page.addView(comentario)
@@ -152,7 +143,7 @@ internal fun MainActivity.showComentarioForm(pedidoId: String, comentarioId: Str
     }
 
 internal fun MainActivity.showSimpleBodyForm(title: String, key: String, path: String, method: String, after: () -> Unit) {
-        val page = page(title, path)
+        val page = appPage(title, path)
         val value = input(key)
         page.addView(value)
         page.addView(topActions {
@@ -166,7 +157,7 @@ internal fun MainActivity.showSimpleBodyForm(title: String, key: String, path: S
     }
 
 internal fun MainActivity.showRawJsonForm(title: String, path: String, method: String, after: () -> Unit) {
-        val page = page(title, path)
+        val page = appPage(title, path)
         val raw = input("JSON")
         raw.minLines = 8
         raw.setText("""{"respuestas":{}}""")

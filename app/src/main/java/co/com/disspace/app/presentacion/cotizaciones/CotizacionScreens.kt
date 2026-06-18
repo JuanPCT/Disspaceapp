@@ -22,23 +22,13 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 internal fun MainActivity.showCotizaciones(filters: Map<String, String> = emptyMap()) {
-        val page = page("Cotizaciones", "Gestion comercial por sucursal.")
-        page.addView(topActions {
-            addView(secondaryButton("Inicio") { showHome() })
-            addView(primaryButton("Nueva") { showCotizacionForm(null, null) })
-            addView(secondaryButton("Recargar") { showCotizaciones(filters) })
-        })
-
+        val page = appPage("Cotizaciones", "Gestion comercial por sucursal.")
         val filterFields = listOf("numero" to "Numero", "cliente" to "Cliente", "vendedor" to "Vendedor", "estado" to "Estado")
-        val inputs = mutableMapOf<String, EditText>()
-        page.addView(sectionTitle("Filtros"))
-        filterFields.forEach { (key, label) ->
-            val edit = input(label, filters[key] ?: "")
-            inputs[key] = edit
-            page.addView(edit)
-        }
-        page.addView(primaryButton("Aplicar filtros") {
-            showCotizaciones(inputs.mapValues { it.value.text.toString().trim() }.filterValues { it.isNotBlank() })
+        page.addView(topActions {
+            addView(primaryButton("Nueva") { showCotizacionForm(null, null) })
+            addView(filterButton(filters.size) {
+                showFiltersDialog("Filtros de cotizaciones", filterFields, filters) { showCotizaciones(it) }
+            })
         })
 
         val holder = section("Cargando...")
@@ -76,7 +66,7 @@ internal fun MainActivity.postCotizacionAction(id: String, suffix: String) {
     }
 
 internal fun MainActivity.showCotizacionForm(id: String?, existing: JSONObject?) {
-        val page = page(if (id == null) "Nueva cotizacion" else "Editar cotizacion", "Encabezado")
+        val page = appPage(if (id == null) "Nueva cotizacion" else "Editar cotizacion", "Encabezado")
         val fields = listOf(
             ApiField("numero", "Numero", kind = FieldKind.NUMBER, required = true, existingKeys = listOf("NUMERO")),
             ApiField("fecha", "Fecha (YYYY-MM-DD)", kind = FieldKind.DATE, required = true, existingKeys = listOf("FECHA")),
@@ -127,7 +117,7 @@ internal fun MainActivity.showCotizacionForm(id: String?, existing: JSONObject?)
     }
 
 internal fun MainActivity.showCotizacionDetail(id: String) {
-        val page = page("Cotizacion $id", "Zonas, detalles y acciones.")
+        val page = appPage("Cotizacion $id", "Zonas, detalles y acciones.")
         page.addView(topActions {
             addView(secondaryButton("Atras") { showCotizaciones() })
             addView(secondaryButton("Editar") { showCotizacionForm(id, null) })
@@ -183,7 +173,7 @@ internal fun MainActivity.showCotizacionDetail(id: String) {
     }
 
 internal fun MainActivity.showZonaForm(cotizacionId: String, zonaId: String?, zona: JSONObject?) {
-        val page = page(if (zonaId == null) "Nueva zona" else "Editar zona", "Cotizacion $cotizacionId")
+        val page = appPage(if (zonaId == null) "Nueva zona" else "Editar zona", "Cotizacion $cotizacionId")
         val descripcion = input("Descripcion", zona?.optString("DESCRIPCION").orEmpty())
         page.addView(descripcion)
         page.addView(topActions {
@@ -197,7 +187,7 @@ internal fun MainActivity.showZonaForm(cotizacionId: String, zonaId: String?, zo
     }
 
 internal fun MainActivity.showDetalleForm(cotizacionId: String, detalleId: String?, detalle: JSONObject?) {
-        val page = page(if (detalleId == null) "Nuevo detalle" else "Editar detalle", "Cotizacion $cotizacionId")
+        val page = appPage(if (detalleId == null) "Nuevo detalle" else "Editar detalle", "Cotizacion $cotizacionId")
         val fields = listOf(
             ApiField("articuloid", "Articulo ID", kind = FieldKind.NUMBER, required = true, existingKeys = listOf("ARTICULOID")),
             ApiField("cantidad", "Cantidad", kind = FieldKind.NUMBER, required = true, existingKeys = listOf("CANTIDAD")),
