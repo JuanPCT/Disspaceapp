@@ -634,6 +634,7 @@ abstract class BaseDisspaceActivity : AppCompatActivity() {
             }
         }.apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
 
+        var lastSelectedId = selectedId
         return Spinner(this).apply {
             this.adapter = adapter
             setBackgroundColor(Color.rgb(35, 38, 43))
@@ -643,7 +644,10 @@ abstract class BaseDisspaceActivity : AppCompatActivity() {
             onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                     val opt = all[position]
-                    if (opt.id.isNotBlank()) onSelected(opt)
+                    if (opt.id.isNotBlank() && opt.id != lastSelectedId) {
+                        lastSelectedId = opt.id
+                        onSelected(opt)
+                    }
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) = Unit
