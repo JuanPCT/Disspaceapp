@@ -1,16 +1,24 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.Disspaceapp" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_200</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
-        <item name="colorOnPrimary">@color/black</item>
-        <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorSecondaryVariant">@color/teal_200</item>
-        <item name="colorOnSecondary">@color/black</item>
+    <style name="Theme.Disspaceapp" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Material 3 brand roles. -->
+        <item name="colorPrimary">#8EDCAA</item>
+        <item name="colorPrimaryVariant">#8EDCAA</item>
+        <item name="colorOnPrimary">#00391E</item>
+        <item name="colorPrimaryContainer">#00522E</item>
+        <item name="colorOnPrimaryContainer">#A8F5C4</item>
+        <item name="colorSecondary">#C4D0C2</item>
+        <item name="colorSecondaryContainer">#435047</item>
+        <item name="colorOnSecondary">#2E352F</item>
+        <item name="colorSurface">#141814</item>
+        <item name="colorOnSurface">#E6E1E5</item>
+        <item name="colorSurfaceVariant">#43483F</item>
+        <item name="colorOutline">#8D9389</item>
+        <item name="colorError">#FFB4AB</item>
+        <item name="colorOnError">#690005</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-        <!-- Customize your theme here. -->
+        <item name="android:statusBarColor">#000000</item>
+        <item name="android:navigationBarColor">#141814</item>
+        <item name="android:fontFamily">sans</item>
     </style>
 </resources>

@@ -1,18 +1,22 @@
 package co.com.disspace.app.presentacion
 
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.text.InputType
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.doOnAttach
 import co.com.disspace.app.MainActivity
 import co.com.disspace.app.R
 import co.com.disspace.app.data.datasource.ApiClient
@@ -24,33 +28,179 @@ import co.com.disspace.app.domain.model.DisspaceModules.articulosModule
 import co.com.disspace.app.domain.model.DisspaceModules.genericModules
 import co.com.disspace.app.domain.model.DisspaceModules.listaPreciosModule
 import co.com.disspace.app.domain.model.FieldKind
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
+import com.google.android.material.checkbox.MaterialCheckBox
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 internal fun MainActivity.showLogin() {
-        val page = page("Disspace", "App operativa para cotizaciones, pedidos, catalogos y administracion.")
-        val email = input("Email")
-        val password = input("Contrasena")
-        password.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+    val background = Color.rgb(245, 247, 250)
+    val surface = Color.WHITE
+    val primary = Color.rgb(25, 135, 84)
+    val textPrimary = Color.rgb(25, 32, 41)
+    val textSecondary = Color.rgb(88, 100, 113)
 
-        page.addView(email)
-        page.addView(password)
-        page.addView(primaryButton("Iniciar sesion") {
+    window.statusBarColor = background
+    window.navigationBarColor = background
+
+    val frame = FrameLayout(this).apply {
+        setBackgroundColor(background)
+    }
+    val scroll = ScrollView(this).apply {
+        isFillViewport = true
+        setBackgroundColor(background)
+    }
+    val content = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        gravity = Gravity.CENTER
+        setPadding(dp(22), dp(24), dp(22), dp(24))
+        layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+    }
+    val cardContent = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        gravity = Gravity.CENTER_HORIZONTAL
+        setPadding(dp(22), dp(24), dp(22), dp(22))
+    }
+    val card = MaterialCardView(this).apply {
+        radius = dp(8).toFloat()
+        cardElevation = dp(2).toFloat()
+        setCardBackgroundColor(surface)
+        strokeWidth = 1
+        strokeColor = Color.rgb(226, 232, 238)
+        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            width = minOf(resources.displayMetrics.widthPixels - dp(44), dp(420))
+        }
+        addView(cardContent)
+    }
+
+    cardContent.addView(ImageView(this).apply {
+        setImageResource(R.drawable.disspace_logo)
+        scaleType = ImageView.ScaleType.CENTER_INSIDE
+        setBackground(rounded(Color.WHITE, dp(6), Color.rgb(230, 234, 238)))
+        layoutParams = LinearLayout.LayoutParams(dp(164), dp(72)).apply {
+            bottomMargin = dp(18)
+        }
+    })
+    cardContent.addView(TextView(this).apply {
+        text = "Bienvenido"
+        textSize = 24f
+        gravity = Gravity.CENTER
+        setTypeface(typeface, android.graphics.Typeface.BOLD)
+        setTextColor(textPrimary)
+    })
+    cardContent.addView(TextView(this).apply {
+        text = "Ingresa a Disspace"
+        textSize = 14f
+        gravity = Gravity.CENTER
+        setTextColor(textSecondary)
+        setPadding(0, dp(4), 0, dp(20))
+    })
+
+    fun materialInput(label: String, inputType: Int, passwordToggle: Boolean = false): Pair<TextInputLayout, TextInputEditText> {
+        val edit = TextInputEditText(this).apply {
+            this.inputType = inputType
+            textSize = 15f
+            setSingleLine(true)
+            setTextColor(textPrimary)
+            setHintTextColor(textSecondary)
+        }
+        val layout = TextInputLayout(this).apply {
+            hint = label
+            boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
+            boxBackgroundColor = surface
+            setBoxStrokeColorStateList(ColorStateList.valueOf(primary))
+            setHintTextColor(ColorStateList.valueOf(textSecondary))
+            setStartIconTintList(ColorStateList.valueOf(textSecondary))
+            setEndIconTintList(ColorStateList.valueOf(textSecondary))
+            if (passwordToggle) endIconMode = TextInputLayout.END_ICON_PASSWORD_TOGGLE
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                bottomMargin = dp(12)
+            }
+            addView(edit)
+        }
+        cardContent.addView(layout)
+        return layout to edit
+    }
+
+    val (emailLayout, email) = materialInput("Email", InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS)
+    val (passwordLayout, password) = materialInput("Contrasena", InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD, passwordToggle = true)
+    val keepSession = MaterialCheckBox(this).apply {
+        text = "Mantener sesion iniciada en este dispositivo"
+        isChecked = true
+        textSize = 14f
+        buttonTintList = ColorStateList.valueOf(primary)
+        setTextColor(textSecondary)
+        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            bottomMargin = dp(12)
+        }
+    }
+    cardContent.addView(keepSession)
+
+    cardContent.addView(MaterialButton(this).apply {
+        text = "Iniciar sesion"
+        isAllCaps = false
+        textSize = 15f
+        cornerRadius = dp(8)
+        backgroundTintList = ColorStateList.valueOf(primary)
+        setTextColor(Color.WHITE)
+        minHeight = dp(52)
+        insetTop = 0
+        insetBottom = 0
+        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(52)).apply {
+            topMargin = dp(4)
+        }
+        setOnClickListener {
+            emailLayout.error = null
+            passwordLayout.error = null
+            val emailValue = email.text?.toString()?.trim().orEmpty()
+            val passwordValue = password.text?.toString().orEmpty()
+            var hasError = false
+            if (emailValue.isBlank()) {
+                emailLayout.error = "Ingresa tu email"
+                hasError = true
+            }
+            if (passwordValue.isBlank()) {
+                passwordLayout.error = "Ingresa tu contrasena"
+                hasError = true
+            }
+            if (hasError) return@setOnClickListener
+
             val body = JSONObject()
-                .put("email", email.text.toString().trim())
-                .put("password", password.text.toString())
+                .put("email", emailValue)
+                .put("password", passwordValue)
             api = ApiClient(store.baseUrl, "")
             apiCall({ api.post("/auth/login", body) }) { json ->
-                store.token = json.optString("token")
-                store.userJson = json.optJSONObject("user")
-                api = ApiClient(store.baseUrl, store.token)
-                user = store.userJson
+                val token = json.optString("token")
+                val loggedUser = json.optJSONObject("user")
+                if (keepSession.isChecked) {
+                    store.token = token
+                    store.userJson = loggedUser
+                } else {
+                    store.clear()
+                }
+                api = ApiClient(store.baseUrl, token)
+                user = loggedUser
                 showHome()
             }
-        })
+        }
+    })
+
+    content.addView(card)
+    scroll.addView(content)
+    frame.addView(scroll)
+    loadingView = ProgressBar(this).apply {
+        visibility = View.GONE
+        layoutParams = FrameLayout.LayoutParams(dp(56), dp(56), Gravity.CENTER)
     }
+    frame.addView(loadingView)
+    setContentView(frame)
+    root = cardContent
+}
 
 internal fun MainActivity.showHome() {
     val currentUser = user
@@ -167,12 +317,28 @@ internal fun MainActivity.appPage(
 }
 
 private fun MainActivity.mobileTopbar(onMenu: () -> Unit): LinearLayout {
+    val baseHeight = dp(58)
+    val horizontalPaddingStart = dp(14)
+    val horizontalPaddingEnd = dp(12)
+    val baseVerticalPadding = dp(6)
     return LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
-        setPadding(dp(14), dp(6), dp(12), dp(6))
+        setPadding(horizontalPaddingStart, baseVerticalPadding, horizontalPaddingEnd, baseVerticalPadding)
         setBackgroundColor(Color.BLACK)
-        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(58))
+        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, baseHeight)
+        ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+            val statusTop = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+            view.setPadding(horizontalPaddingStart, statusTop + baseVerticalPadding, horizontalPaddingEnd, baseVerticalPadding)
+            val params = view.layoutParams
+            val targetHeight = baseHeight + statusTop
+            if (params.height != targetHeight) {
+                params.height = targetHeight
+                view.layoutParams = params
+            }
+            insets
+        }
+        doOnAttach { ViewCompat.requestApplyInsets(it) }
         addView(hamburgerButton().apply {
             setOnClickListener { onMenu() }
         })
@@ -308,7 +474,16 @@ private fun MainActivity.mobileDrawer(
     return LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
         setBackgroundColor(Color.BLACK)
+        setPadding(0, 0, 0, 0)
         layoutParams = FrameLayout.LayoutParams(width, ViewGroup.LayoutParams.MATCH_PARENT, Gravity.START)
+        ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+            val statusTop = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+            if (view.paddingTop != statusTop) {
+                view.setPadding(0, statusTop, 0, 0)
+            }
+            insets
+        }
+        doOnAttach { ViewCompat.requestApplyInsets(it) }
 
         addView(ImageView(context).apply {
             setImageResource(R.drawable.disspace_logo)
@@ -344,9 +519,9 @@ private fun MainActivity.mobileDrawer(
 
                 if (!isLimitedRole) {
                     addView(drawerGroup(R.drawable.bi_bar_chart_fill, "Reportes") {
-                        addView(drawerItem(R.drawable.bi_box_seam, "Ventas por Articulo", closeDrawer) { showSingleReporte("Ventas por Articulo", "/reportes/articulo") })
-                        addView(drawerItem(R.drawable.bi_person_badge, "Ventas por Vendedor", closeDrawer) { showSingleReporte("Ventas por Vendedor", "/reportes/vendedor") })
-                        addView(drawerItem(R.drawable.bi_calendar3, "Ventas por Mes", closeDrawer) { showSingleReporte("Ventas por Mes", "/reportes/mes") })
+                        addView(drawerItem(R.drawable.bi_box_seam, "Ventas por Articulo", closeDrawer) { loadReporteArticulo() })
+                        addView(drawerItem(R.drawable.bi_person_badge, "Ventas por Vendedor", closeDrawer) { loadReporteVendedor() })
+                        addView(drawerItem(R.drawable.bi_calendar3, "Ventas por Mes", closeDrawer) { loadReporteMes(null) })
                     })
                 }
             })
@@ -362,18 +537,21 @@ private fun MainActivity.drawerGroup(iconRes: Int, title: String, children: Line
         orientation = LinearLayout.VERTICAL
         val items = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
+            visibility = View.GONE
             children()
         }
-        val header = drawerSection(iconRes, title) {
-            val visible = items.visibility == View.VISIBLE
-            items.visibility = if (visible) View.GONE else View.VISIBLE
+        val chevron = iconImage(R.drawable.bi_chevron_down, Color.rgb(214, 216, 220), dp(18)).apply {
+            layoutParams = LinearLayout.LayoutParams(dp(30), ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
+        val header = drawerSection(iconRes, title, chevron) {
+            setCollapsibleVisible(items, chevron, items.visibility != View.VISIBLE)
         }
         addView(header)
         addView(items)
     }
 }
 
-private fun MainActivity.drawerSection(iconRes: Int, title: String, onClick: () -> Unit): LinearLayout {
+private fun MainActivity.drawerSection(iconRes: Int, title: String, chevron: ImageView, onClick: () -> Unit): LinearLayout {
     return LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
@@ -390,9 +568,7 @@ private fun MainActivity.drawerSection(iconRes: Int, title: String, onClick: () 
             setTextColor(Color.rgb(214, 216, 220))
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
         })
-        addView(iconImage(R.drawable.bi_chevron_down, Color.rgb(214, 216, 220), dp(18)).apply {
-            layoutParams = LinearLayout.LayoutParams(dp(30), ViewGroup.LayoutParams.WRAP_CONTENT)
-        })
+        addView(chevron)
     }
 }
 
@@ -429,53 +605,85 @@ private fun MainActivity.drawerFooter(
     return LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
         setPadding(dp(18), dp(10), dp(18), dp(14))
-        addView(LinearLayout(context).apply {
+        val actions = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            visibility = View.GONE
+            setPadding(0, dp(8), 0, 0)
+            addView(drawerItem(R.drawable.bi_building, "Cambiar Sucursal", closeDrawer) { showChangeSucursal() })
+            if (!isLimitedRole) addView(drawerItem(R.drawable.bi_gear, "Configuracion", closeDrawer) { showConfiguracion() })
+            addView(drawerItem(R.drawable.bi_box_arrow_left, "Cerrar Sesion", closeDrawer) {
+                closeSession()
+            })
+        }
+        val chevron = iconImage(R.drawable.bi_chevron_down, Color.rgb(214, 216, 220), dp(18)).apply {
+            layoutParams = LinearLayout.LayoutParams(dp(30), dp(30))
+        }
+        val session = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            addView(TextView(context).apply {
-                text = "Oscuro"
-                textSize = 13f
-                setTextColor(Color.rgb(214, 216, 220))
+            setPadding(0, 0, 0, 0)
+            isClickable = true
+            isFocusable = true
+            setOnClickListener {
+                setCollapsibleVisible(actions, chevron, actions.visibility != View.VISIBLE)
+            }
+            addView(LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
                 layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                addView(TextView(context).apply {
+                    text = email
+                    textSize = 13f
+                    setTypeface(typeface, android.graphics.Typeface.BOLD)
+                    setTextColor(Color.rgb(214, 216, 220))
+                    setSingleLine(true)
+                })
+                addView(TextView(context).apply {
+                    text = listOf(sucursal, year).filter { it.isNotBlank() }.joinToString(" - ").ifBlank { "Sesion activa" }
+                    textSize = 12f
+                    setTextColor(Color.rgb(185, 189, 194))
+                    setPadding(0, dp(2), 0, 0)
+                })
             })
-            addView(View(context).apply {
-                setBackground(rounded(Color.rgb(52, 57, 64), dp(10), Color.rgb(95, 101, 109)))
-                layoutParams = LinearLayout.LayoutParams(dp(40), dp(20))
-            })
-        })
-        addView(TextView(context).apply {
-            text = email
-            textSize = 13f
-            setTypeface(typeface, android.graphics.Typeface.BOLD)
-            setTextColor(Color.rgb(214, 216, 220))
-            setSingleLine(true)
-            setPadding(0, dp(18), 0, 0)
-        })
-        addView(TextView(context).apply {
-            text = listOf(sucursal, year).filter { it.isNotBlank() }.joinToString(" - ").ifBlank { "Sesion activa" }
-            textSize = 12f
-            setTextColor(Color.rgb(185, 189, 194))
-            setPadding(0, dp(2), 0, dp(12))
-        })
-        addView(drawerItem(R.drawable.bi_building, "Cambiar Sucursal", closeDrawer) { showChangeSucursal() })
-        if (!isLimitedRole) addView(drawerItem(R.drawable.bi_gear, "Configuracion", closeDrawer) { showConfiguracion() })
-        addView(drawerItem(R.drawable.bi_box_arrow_left, "Cerrar Sesion", closeDrawer) {
-            store.clear()
-            api = ApiClient(store.baseUrl, "")
-            showLogin()
-        })
+            addView(chevron)
+        }
+        addView(session)
+        addView(actions)
+    }
+}
+
+private fun MainActivity.setCollapsibleVisible(content: View, chevron: View, expanded: Boolean) {
+    content.animate().cancel()
+    chevron.animate().cancel()
+    chevron.animate()
+        .rotation(if (expanded) 180f else 0f)
+        .setDuration(160)
+        .start()
+
+    if (expanded) {
+        content.visibility = View.VISIBLE
+        content.alpha = 0f
+        content.translationY = -dp(6).toFloat()
+        content.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(180)
+            .start()
+    } else {
+        content.animate()
+            .alpha(0f)
+            .translationY(-dp(6).toFloat())
+            .setDuration(140)
+            .withEndAction {
+                content.visibility = View.GONE
+                content.alpha = 1f
+                content.translationY = 0f
+            }
+            .start()
     }
 }
 
 private fun View.postDelayed(block: () -> Unit, delayMs: Long) {
     handler?.postDelayed(block, delayMs) ?: block()
-}
-
-private fun MainActivity.showSingleReporte(title: String, path: String) {
-    val page = appPage(title, "Consultas analiticas del backend.")
-    val holder = section("Cargando...")
-    page.addView(holder)
-    loadReporte(path, holder)
 }
 
 private fun menuModuleByPath(path: String): CrudModule? {

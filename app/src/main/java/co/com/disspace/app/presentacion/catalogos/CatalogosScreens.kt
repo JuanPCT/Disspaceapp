@@ -40,7 +40,13 @@ internal fun MainActivity.showChangeSucursal() {
             val sucursales = json.optJSONObject("catalogos")?.optJSONArray("sucursales") ?: JSONArray()
             for (i in 0 until sucursales.length()) {
                 val s = sucursales.optJSONObject(i) ?: continue
-                holder.addView(moduleButton("${s.optString("NOMBRE")} ${s.optString("AÑO")}", "ID ${s.optAny("SUCURSALID")}") {
+                val title = s.optString("NOMBRE").ifBlank { "Sucursal" }
+                val details = listOf(
+                    s.optString("AÑO").takeIf { it.isNotBlank() }?.let { "Año $it" },
+                    s.optString("CONSECUTIVO").takeIf { it.isNotBlank() }?.let { "Consecutivo $it" },
+                    if (s.optBoolean("PRINCIPAL", false)) "Principal" else null
+                ).filterNotNull().joinToString(" · ").ifBlank { "Disponible para seleccionar" }
+                holder.addView(moduleButton(title, details) {
                     apiCall({ api.post("/auth/change-sucursal", JSONObject().put("sucursalId", s.optAny("SUCURSALID"))) }) { resp ->
                         store.token = resp.optString("token")
                         store.userJson = resp.optJSONObject("user")

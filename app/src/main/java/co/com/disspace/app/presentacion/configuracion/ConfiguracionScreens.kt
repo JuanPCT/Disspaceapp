@@ -33,12 +33,15 @@ internal fun MainActivity.showConfiguracion() {
             holder.addView(sectionTitle("Factores"))
             val factores = json.optJSONArray("factores") ?: JSONArray()
             val factorValues = mutableMapOf<Int, String>()
+            val factorLabels = mutableMapOf<Int, String>()
             for (i in 0 until factores.length()) {
                 val f = factores.optJSONObject(i) ?: continue
-                factorValues[f.optInt("id")] = f.optString("valor")
-                holder.addView(jsonPreview(f, listOf("id", "descripcion", "valor")))
+                val factorId = f.optInt("id")
+                factorValues[factorId] = f.optString("valor")
+                factorLabels[factorId] = f.optString("descripcion")
+                holder.addView(jsonPreview(f, listOf("id", "descripcion", "valor"), hideDatabaseIds = true))
             }
-            holder.addView(primaryButton("Editar factores") { showFactoresForm(factorValues) })
+            holder.addView(primaryButton("Editar factores") { showFactoresForm(factorValues, factorLabels) })
 
             holder.addView(sectionTitle("Preguntas"))
             val preguntas = json.optJSONArray("preguntas") ?: JSONArray()
@@ -47,7 +50,7 @@ internal fun MainActivity.showConfiguracion() {
                 val p = preguntas.optJSONObject(i) ?: continue
                 holder.addView(card {
                     addView(itemTitle(p, listOf("TEXTO")))
-                    addView(jsonPreview(p, listOf("TIPO", "ORDEN", "ACTIVA", "opciones")))
+                    addView(jsonPreview(p, listOf("TIPO", "ORDEN", "ACTIVA", "opciones"), hideDatabaseIds = true))
                     addView(topActions {
                         addView(secondaryButton("Editar") { showPreguntaForm(p.optAny("PREGUNTAID"), p) })
                         addView(dangerButton("Eliminar") {
@@ -61,12 +64,21 @@ internal fun MainActivity.showConfiguracion() {
         }
     }
 
-internal fun MainActivity.showFactoresForm(values: Map<Int, String>) {
+internal fun MainActivity.showFactoresForm(values: Map<Int, String>, labels: Map<Int, String> = emptyMap()) {
         val page = appPage("Factores de utilidad", "Valores positivos usados para calcular precios.")
+        val fallbackLabels = mapOf(
+            1 to "Factor \$0 - \$799.999",
+            2 to "Factor \$2.000.001 - \$2.999.999",
+            3 to "Factor \$3.000.000 - \$3.999.999",
+            4 to "Factor \$4.000.000 - \$5.000.000",
+            5 to "Factor > \$5.000.000",
+            6 to "Factor de aumento a Franquicias"
+        )
         val inputs = (1..6).associateWith { factor ->
-            input("factor$factor", values[factor].orEmpty()).also {
+            val label = labels[factor]?.takeIf { it.isNotBlank() } ?: fallbackLabels[factor] ?: "Factor $factor"
+            input(label, values[factor].orEmpty()).also {
                 it.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
-                page.addView(it)
+                page.addView(labeledInput(label, it))
             }
         }
         page.addView(topActions {
@@ -88,9 +100,9 @@ internal fun MainActivity.showPreguntaForm(id: String?, pregunta: JSONObject?) {
             for (i in 0 until array.length()) values.add(array.optJSONObject(i)?.optString("TEXTO").orEmpty())
             values.filter { it.isNotBlank() }.joinToString(", ")
         }.orEmpty())
-        page.addView(texto)
-        page.addView(tipo)
-        page.addView(opciones)
+        page.addView(labeledInput("Texto", texto))
+        page.addView(labeledInput("Tipo: opcion o abierta", tipo))
+        page.addView(labeledInput("Opciones separadas por coma", opciones))
         page.addView(helpText("Para preguntas de opcion escribe al menos dos opciones separadas por coma. Las subpreguntas avanzadas se pueden ajustar en la web o enviarse como JSON si se extiende el formulario."))
         page.addView(topActions {
             addView(secondaryButton("Cancelar") { showConfiguracion() })

@@ -1,6 +1,5 @@
 package co.com.disspace.app.presentacion
 
-import android.graphics.Color
 import android.text.InputType
 import android.view.View
 import android.widget.CheckBox
@@ -79,11 +78,7 @@ internal fun MainActivity.showGenericForm(module: CrudModule, id: String?, item:
         module.fields.forEach { field ->
             val value = item?.firstString(field.existingKeys) ?: ""
             if (field.kind == FieldKind.BOOLEAN) {
-                val cb = CheckBox(this).apply {
-                    text = field.label
-                    isChecked = value == "1" || value.equals("true", ignoreCase = true)
-                    setTextColor(Color.rgb(36, 43, 51))
-                }
+                val cb = checkbox(field.label, value == "1" || value.equals("true", ignoreCase = true))
                 inputs[field] = cb
                 page.addView(cb)
             } else {
@@ -96,7 +91,7 @@ internal fun MainActivity.showGenericForm(module: CrudModule, id: String?, item:
                     else -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
                 }
                 inputs[field] = edit
-                page.addView(edit)
+                page.addView(labeledInput(field.label, edit))
             }
         }
 
